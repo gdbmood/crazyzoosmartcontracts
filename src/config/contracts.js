@@ -1,0 +1,22 @@
+import { ChainId } from '@usedapp/core';
+
+const ContractsConfig = {
+  // [ChainId.Mumbai]: {
+  //   ZOOTOKEN : process.env.REACT_APP_TOKEN_ADDRESS_MUMBAI,
+  //   ZOONFT : process.env.REACT_APP_NFT_ADDRESS_MUMBAI,
+  //   ZOOSTAKING : process.env.REACT_APP_STAKING_ADDRESS_MUMBAI,
+  //   UNISWAPINTERMEDIARY : process.env.REACT_APP_UNISWAPINTERMEDIARY_ADDRESS_MUMBAI,
+  //   PRESALE : process.env.REACT_APP_PRESALE_ADDRESS_MUMBAI,
+  //   USDC : process.env.REACT_APP_USDT_ADDRESS_MUMBAI
+  // },
+  [ChainId.ArbitrumGoerli]: {
+    ZooToken : process.env.REACT_APP_TOKEN_ADDRESS_ARBITRUMGOERLI,
+    ZOONFT : process.env.REACT_APP_NFT_ADDRESS_ARBITRUMGOERLI,
+    ZOOSTAKING : process.env.REACT_APP_STAKING_ADDRESS_ARBITRUMGOERLI,
+    PRESALE : process.env.REACT_APP_PRESALE_ADDRESS_ARBITRUMGOERLI,
+    UNISWAPINTERMEDIARY : process.env.REACT_APP_UNISWAPINTERMEDIARY_ADDRESS_ARBITRUMGOERLI,
+    USDT : process.env.REACT_APP_USDT_ADDRESS_ARBITRUMGOERLI
+  }
+};
+
+export default ContractsConfig;
