@@ -1,0 +1,20 @@
+Parameters of every smart contract that are compulsory to set before initiating the app.
+
+Intermediary:
+ 1--otherToken
+
+token:
+ 1--marketting wallet
+ 2--staking contract address
+
+staking:
+ 1--allowance of sufficient amount from feeCollector to collect nft fees to staking contract
+ 
+preSale:
+ 1--start preSale
+ 
+NFT:
+  1--directMinting
+  2--setRange
+
+
