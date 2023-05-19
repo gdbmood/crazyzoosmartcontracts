@@ -3,8 +3,13 @@ import PropTypes from 'prop-types'
 import { propTypes } from 'react-bootstrap/esm/Image';
 
 import { Button } from 'react-bootstrap';
+import { useAccount } from 'wagmi';
+import { summaryOwner } from '../../../hooks/utils';
 
 const PresaleAddressBox = props => {
+
+    const {address, isConnected} = useAccount();
+
 
     const data = props.data;
 
@@ -14,7 +19,7 @@ const PresaleAddressBox = props => {
                 <Button className="referralRewardsWithdrawBtn">Address</Button>
             </div>
             <div className="col-8 referralRewardsWrapper">
-                <h5 className="presaleAddressLabel">0x5sd5e2d...</h5>
+                <h5 className="presaleAddressLabel">{summaryOwner(address)}</h5>
                 
             </div>
         </div>

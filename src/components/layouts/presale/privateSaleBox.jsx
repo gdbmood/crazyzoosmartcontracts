@@ -11,8 +11,19 @@ import { ethers } from 'ethers';
 import {
     useAccount,
     useConnect,
-    useNetwork
+    useNetwork,
+    useWaitForTransaction
 } from 'wagmi'
+import { ApproveToken } from '../../../hooks/main/approveToke';
+import { preSaleContractAddress, usdcTokenAddress } from '../../../hooks/main/abi';
+import { toast } from "react-toastify";
+import { GetAllowanceAmount } from '../../../hooks/main/getAllowanceAmount';
+import { GetTokenDecimals } from '../../../hooks/main/getTokenDecimals';
+import { GetUserUsdcBalance } from '../../../hooks/main/getUserUsdcBalance';
+import { GetUserRefer } from '../../../hooks/main/getUserRefer';
+import { BuyZooToken } from '../../../hooks/main/buyZooToken';
+import { GetMinimumInvestment } from '../../../hooks/main/getMinimumInvestment';
+import { GetMaximumInvestment } from '../../../hooks/main/getMaximumInvestment';
 
 
 
@@ -41,28 +52,136 @@ const CountdownRenderer = ({ days, hours, minutes, seconds, completed }) => {
 
 const PrivateSaleBox = props => {
     const data = props.data;
+
+    const addressZero = '0x0000000000000000000000000000000000000000';
     const [inputAmount, setInputAmount] = useState()
+    const [referAddress, setReferAddress] = useState(addressZero);
+
+    const {address, isConnected} = useAccount()
     const { chain, chains } = useNetwork()
      
+    /**
     const {minBuy, maxBuy, PreSaleContractAddress} = data[0]
-
     const amountString = inputAmount ? Number(inputAmount).toFixed() : 0;
     const _Tokenfee = amountString ? ethers.BigNumber.from(amountString).mul(ethers.BigNumber.from(10).pow(18)) : 0;
-    
     const { data: dataTokenfee, isLoading: isLoadingTokenfee, isSuccess: isSuccessTokenfee, write: TokenfeeApprove } = SetUSDT('approve', [`${PreSaleContractAddress}`, `${_Tokenfee}`], chain.id)
+    */
+
+    const allowance = GetAllowanceAmount(address, preSaleContractAddress);
+    const decimals = GetTokenDecimals(usdcTokenAddress);
+    const usdcBalance = GetUserUsdcBalance(address);
+    const currentRefer = GetUserRefer(address);
+    const minimumInvestment = GetMinimumInvestment();
+    const maximumInvestment = GetMaximumInvestment();
+
+
+    const convertedAllowance = Number(allowance.data) / 10 ** Number(decimals.data);
+    let approveAmount = convertedAllowance < Number(inputAmount) ? Number(inputAmount): 0;
+    const approve = ApproveToken(usdcTokenAddress, preSaleContractAddress, approveAmount)
+    const approveWait = useWaitForTransaction({hash: approve?.data?.hash})
+    const buyZooToken = BuyZooToken(address, referAddress, Number(inputAmount))
+    const buyZooTokenWait = useWaitForTransaction({hash: buyZooToken?.data?.hash})
 
     
     const handleInputAmount = (event) => {
         setInputAmount(event.target.value)
     };
-    
-    const handleMint = async () => {
-        if(inputAmount < minBuy || inputAmount > maxBuy){
-            alert("Approved amount is incorrect")  
-        } else {
-            await TokenfeeApprove?.();
+
+    const approveFunc = async () => {
+        
+        if(Number(usdcBalance.data)/10**decimals.data < Number(inputAmount)){
+            toast.error("You don't have enough funds to buy");
+            return;
         }
-    };
+        if(referAddress == address){
+            toast.error("You can't put your address as refer");
+            return;
+        }
+        if(Number(inputAmount) < minimumInvestment.data/10**decimals.data){
+            toast.error(`Lower than minimum investment amount (${minimumInvestment.data/10**decimals.data})`);
+            return;
+        }
+        approve.write?.();
+    }
+
+    const buyFunc = async () => {
+        if(usdcBalance.data/10**decimals.data < Number(inputAmount)){
+            toast.error("You don't have enough funds to buy");
+            return;
+        }
+        if(referAddress == address){
+            toast.error("You can't put your address as refer");
+            return;
+        }
+        if(Number(inputAmount) < minimumInvestment.data/10**decimals.data){
+            toast.error(`Lower than minimum investment amount (${minimumInvestment.data/10**decimals.data})`);
+            return;
+        }
+        buyZooToken.write?.();
+    }
+
+
+    const getRefer = async () => {
+        if (currentRefer.data != addressZero) {
+            console.log("Current refer:", currentRefer.data);
+            setReferAddress(currentRefer.data);
+            return;
+        }
+        var lnkStr = window.location.href;   //document.URL;   
+        let index = lnkStr.indexOf('?ref=');
+        let referAdd = '';
+        if (index >= 0) {
+            referAdd = lnkStr.substring(index + 5, index + 5 + 42);
+            setReferAddress(referAdd);
+            console.log("referAdd:", referAdd)
+        } else {
+            setReferAddress(addressZero);
+            // console.log("referAddress:", addressZero);
+        }
+    }
+
+    useEffect(() => {
+        getRefer();
+    }, [window.location.href]);
+
+    useEffect(() => {
+        if(approveWait.isLoading){
+            toast.loading("Approving ...");
+        }
+        if(approveWait.isSuccess){
+            allowance.refetch();
+            toast.dismiss();
+            toast.success("Approved Successfully!");
+        }
+        if(approveWait.isError){
+            toast.dismiss();
+            toast.warning("Approving Failed!");
+        }
+    },[approveWait.isLoading, approveWait.isSuccess, approveWait.isError])
+
+
+    useEffect(() => {
+        if(buyZooTokenWait.isLoading){
+            toast.loading("Buying Zoo ...");
+        }
+        if(buyZooTokenWait.isSuccess){
+            allowance.refetch();
+            toast.dismiss();
+            toast.success("You bought token Successfully!");
+        }
+        if(buyZooTokenWait.isError){
+            toast.dismiss();
+            toast.warning("Buying Failed!");
+        }
+    },[buyZooTokenWait.isLoading, buyZooTokenWait.isSuccess, buyZooTokenWait.isError])
+    
+    // const handleMint = async () => {
+    //     if(inputAmount < minBuy || inputAmount > maxBuy){
+    //         alert("Approved amount is incorrect")  
+    //     } else {
+    //         await TokenfeeApprove?.();
+    //     }
+    // };
     return (
         <div className='privateSaleGlassBox'>
             <div className="privateSaleBoxTitleWrapper">Private Sale</div>
@@ -81,13 +200,12 @@ const PrivateSaleBox = props => {
                     <div className="maxswapIn">Max</div>
                 </div>
             </div>
-            {
-                isSuccessTokenfee ?
-                <BuyingPreSale inputAmount={inputAmount} /> :
-                <Button className="swapBtn" onClick={handleMint} >Approve</Button>
- 
-            }
-            {/* <Button className="swapBtn">Buy with USDT</Button> */}
+            {convertedAllowance < Number(inputAmount) 
+                ?
+                <Button className="swapBtn" onClick={approveFunc} >{approve.isLoading ? "Loading ..." : "Approve"}</Button> 
+                :
+                <Button onClick={buyFunc} className="swapBtn">{buyZooToken.isLoading ? "Loading ..." : "Buy with USDC"}</Button>}
+
         </div>
     );
 }

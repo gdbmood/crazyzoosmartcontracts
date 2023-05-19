@@ -9,11 +9,11 @@ import { useNetwork } from 'wagmi'
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react'
 import { configureChains, createClient, WagmiConfig } from 'wagmi'
-import { arbitrum, arbitrumGoerli } from 'wagmi/chains'
+import { arbitrum, arbitrumGoerli, polygonMumbai } from 'wagmi/chains'
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { NetworkContractsContextProvider } from './context/providers/contractProvider'
 
-const chains = [arbitrum, arbitrumGoerli];
+const chains = [polygonMumbai, arbitrum, arbitrumGoerli];
 
 const apiKey = "pCXGTOX5cerPI87r5_a_IGJsclHxk6kj";
 
